@@ -164,27 +164,58 @@ function library:GetConfigs()
 end
 
 library.createLabel = function(option, parent)
-	option.main = library:Create("TextLabel", {
-		LayoutOrder = option.position,
-		Position = UDim2.new(0, 6, 0, 0),
-		Size = UDim2.new(1, -12, 0, 24),
-		BackgroundTransparency = 1,
-		TextSize = 15,
-		Font = Enum.Font.Code,
-		TextColor3 = Color3.new(1, 1, 1),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextWrapped = true,
-		Parent = parent
-	})
+option.title = library:Create("TextLabel", {
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    Position = UDim2.new(0.5, 0, 0.5, 0),
+    BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+    BorderSizePixel = 0,
+    TextColor3 = Color3.new(1, 1, 1),
+    TextSize = 15,
+    Font = Enum.Font.Code,
+    TextXAlignment = Enum.TextXAlignment.Center,
+    Parent = option.main
+})
 
-	setmetatable(option, {__newindex = function(t, i, v)
-		if i == "Text" then
-			option.main.Text = tostring(v)
-			option.main.Size = UDim2.new(1, -12, 0, textService:GetTextSize(option.main.Text, 15, Enum.Font.Code, Vector2.new(option.main.AbsoluteSize.X, 9e9)).Y + 6)
-		end
-	end})
-	option.Text = option.text
+local textService = game:GetService("TextService")
+
+local function typeAndDeleteTitle(text)
+    while true do
+        -- Type the text letter by letter
+        for i = 1, #text do
+            option.Text = string.sub(text, 1, i)
+            wait(0.1)  -- Adjust typing speed here
+        end
+        
+        wait(1)  -- Wait after typing the full text
+        
+        -- Delete the text letter by letter
+        for i = #text, 1, -1 do
+            option.Text = string.sub(text, 1, i - 1)
+            wait(0.1)  -- Adjust deletion speed here
+        end
+        
+        wait(1)  -- Wait before starting the loop again
+    end
+end
+
+-- Start the typing and deleting animation in a coroutine
+coroutine.wrap(typeAndDeleteTitle)(library.title)
+
+setmetatable(option, {__newindex = function(t, i, v)
+    if i == "Text" then
+        if v then
+            option.title.Text = tostring(v)
+            option.title.Size = UDim2.new(0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12, 0, 20)
+            option.main.Size = UDim2.new(1, 0, 0, 18)
+        else
+            option.title.Text = ""
+            option.title.Size = UDim2.new()
+            option.main.Size = UDim2.new(1, 0, 0, 6)
+        end
+    end
+end})
+
+option.Text = option.text
 end
 
 library.createDivider = function(option, parent)
@@ -216,50 +247,21 @@ library.createDivider = function(option, parent)
 		Parent = option.main
 	})
 
-local textService = game:GetService("TextService") -- Ensure you have this service for size calculations
-
-local function animateTitle(option, text)
-    local delayTime = 0.1 -- Time between each letter appearing or disappearing
-    local typingCoroutine = coroutine.create(function()
-        while true do
-            -- Typing effect
-            for i = 1, #text do
-                option.title.Text = string.sub(text, 1, i)
-                option.title.Size = UDim2.new(
-                    0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12,
-                    0, 20
-                )
-                option.main.Size = UDim2.new(1, 0, 0, 18)
-                task.wait(delayTime)
-            end
-
-            -- Pause at full text
-            task.wait(1)
-
-            -- Deleting effect
-            for i = #text, 1, -1 do
-                option.title.Text = string.sub(text, 1, i - 1)
-                if option.title.Text == "" then
-                    option.title.Size = UDim2.new()
-                    option.main.Size = UDim2.new(1, 0, 0, 6)
-                else
-                    option.title.Size = UDim2.new(
-                        0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12,
-                        0, 20
-                    )
-                    option.main.Size = UDim2.new(1, 0, 0, 18)
-                end
-                task.wait(delayTime)
-            end
-
-            -- Pause before starting over
-            task.wait(1)
-        end
-    end)
-
-    coroutine.resume(typingCoroutine)
+	setmetatable(option, {__newindex = function(t, i, v)
+		if i == "Text" then
+			if v then
+				option.title.Text = tostring(v)
+				option.title.Size = UDim2.new(0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12, 0, 20)
+				option.main.Size = UDim2.new(1, 0, 0, 18)
+			else
+				option.title.Text = ""
+				option.title.Size = UDim2.new()
+				option.main.Size = UDim2.new(1, 0, 0, 6)
+			end
+		end
+	end})
+	option.Text = option.text
 end
-
 
 library.createToggle = function(option, parent)
 	option.hasInit = true
