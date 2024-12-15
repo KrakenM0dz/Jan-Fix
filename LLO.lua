@@ -1,54 +1,16 @@
-getgenv().runService = game:GetService("RunService")
-getgenv().textService = game:GetService("TextService")
-getgenv().inputService = game:GetService("UserInputService")
-getgenv().tweenService = game:GetService("TweenService")
-
+--Services
+getgenv().runService = game:GetService"RunService"
+getgenv().textService = game:GetService"TextService"
+getgenv().inputService = game:GetService"UserInputService"
+getgenv().tweenService = game:GetService"TweenService"
 if getgenv().library then
 	getgenv().library:Unload()
 end
 
-local library = {
-    design = getgenv().design == "kali" and "kali",
-    tabs = {},
-    draggable = true,
-    flags = {},
-    title = "Services", -- Default title
-    open = false,
-    mousestate = inputService.MouseIconEnabled,
-    popup = nil,
-    instances = {},
-    connections = {},
-    options = {},
-    notifications = {},
-    tabSize = 0,
-    theme = {},
-    foldername = "awakenkn-hubv3",
-    fileext = ".json"
-}
-
--- Function for type-and-delete effect
-local function typeAndDeleteEffect(object, text, speed)
-    local len = #text
-    local currentText = ""
-    while true do
-        -- Type the text
-        for i = 1, len do
-            currentText = string.sub(text, 1, i)
-            object.Text = currentText
-            task.wait(speed)
-        end
-        task.wait(0.5) -- Pause at the end of typing
-
-        -- Delete the text
-        for i = len, 0, -1 do
-            currentText = string.sub(text, 1, i)
-            object.Text = currentText
-            task.wait(speed)
-        end
-        task.wait(0.5) -- Pause before typing again
-    end
+local library = {design = getgenv().design == "kali" and "kali", tabs = {}, draggable = true, flags = {}, title = "awakenkn-hub", open = false, mousestate = inputService.MouseIconEnabled,popup = nil, instances = {}, connections = {}, options = {}, notifications = {}, tabSize = 0, theme = {}, foldername = "awakenkn-hubv3", fileext = ".json"}
+if getgenv().scripttitle then
+    library.title = getgenv().scripttitle
 end
-
 if getgenv().FolderName then
     library.foldername = getgenv().FolderName
 end
@@ -201,7 +163,6 @@ function library:GetConfigs()
 	return files
 end
 
-
 library.createLabel = function(option, parent)
 	option.main = library:Create("TextLabel", {
 		LayoutOrder = option.position,
@@ -243,21 +204,60 @@ library.createDivider = function(option, parent)
 		Parent = option.main
 	})
 
-	function library:createTitle()
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(0, 200, 0, 50)
-    titleLabel.Position = UDim2.new(0.5, -100, 0.1, 0)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.TextSize = 24
-    titleLabel.Font = Enum.Font.Code
-    titleLabel.TextColor3 = Color3.new(1, 1, 1)
-    titleLabel.Text = ""
-    titleLabel.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("ScreenGui")
+	option.title = library:Create("TextLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+		BorderSizePixel = 0,
+		TextColor3 =  Color3.new(1, 1, 1),
+		TextSize = 15,
+		Font = Enum.Font.Code,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Parent = option.main
+	})
 
-    -- Start the type-and-delete effect
-    coroutine.wrap(typeAndDeleteEffect)(titleLabel, library.title, 0.05)
+local textService = game:GetService("TextService") -- Ensure you have this service for size calculations
 
-    return titleLabel
+local function animateTitle(option, text)
+    local delayTime = 0.1 -- Time between each letter appearing or disappearing
+    local typingCoroutine = coroutine.create(function()
+        while true do
+            -- Typing effect
+            for i = 1, #text do
+                option.title.Text = string.sub(text, 1, i)
+                option.title.Size = UDim2.new(
+                    0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12,
+                    0, 20
+                )
+                option.main.Size = UDim2.new(1, 0, 0, 18)
+                task.wait(delayTime)
+            end
+
+            -- Pause at full text
+            task.wait(1)
+
+            -- Deleting effect
+            for i = #text, 1, -1 do
+                option.title.Text = string.sub(text, 1, i - 1)
+                if option.title.Text == "" then
+                    option.title.Size = UDim2.new()
+                    option.main.Size = UDim2.new(1, 0, 0, 6)
+                else
+                    option.title.Size = UDim2.new(
+                        0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12,
+                        0, 20
+                    )
+                    option.main.Size = UDim2.new(1, 0, 0, 18)
+                end
+                task.wait(delayTime)
+            end
+
+            -- Pause before starting over
+            task.wait(1)
+        end
+    end)
+
+    coroutine.resume(typingCoroutine)
 end
 
 
