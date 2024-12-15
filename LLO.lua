@@ -163,48 +163,7 @@ function library:GetConfigs()
 	return files
 end
 
-library.createLabel = function(option, parent)
-	option.main = library:Create("TextLabel", {
-		LayoutOrder = option.position,
-		Position = UDim2.new(0, 6, 0, 0),
-		Size = UDim2.new(1, -12, 0, 24),
-		BackgroundTransparency = 1,
-		TextSize = 15,
-		Font = Enum.Font.Code,
-		TextColor3 = Color3.new(1, 1, 1),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextWrapped = true,
-		Parent = parent
-	})
-
-	setmetatable(option, {__newindex = function(t, i, v)
-		if i == "Text" then
-			option.main.Text = tostring(v)
-			option.main.Size = UDim2.new(1, -12, 0, textService:GetTextSize(option.main.Text, 15, Enum.Font.Code, Vector2.new(option.main.AbsoluteSize.X, 9e9)).Y + 6)
-		end
-	end})
-	option.Text = option.text
-end
-
-library.createDivider = function(option, parent)
-	option.main = library:Create("Frame", {
-		LayoutOrder = option.position,
-		Size = UDim2.new(1, 0, 0, 18),
-		BackgroundTransparency = 1,
-		Parent = parent
-	})
-
-	library:Create("Frame", {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.5, 0),
-		Size = UDim2.new(1, -24, 0, 1),
-		BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-		BorderColor3 = Color3.new(),
-		Parent = option.main
-	})
-
-	-- UI Creation for the title
+-- UI Creation for the title
 library.titleLabel = library:Create("TextLabel", {
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.new(0.5, 0, 0.1, 0),
@@ -240,6 +199,52 @@ end
 coroutine.wrap(function()
     typingEffect(library.titleLabel, library.title, 0.1) -- Adjust delay as needed
 end)()
+end
+
+library.createDivider = function(option, parent)
+	option.main = library:Create("Frame", {
+		LayoutOrder = option.position,
+		Size = UDim2.new(1, 0, 0, 18),
+		BackgroundTransparency = 1,
+		Parent = parent
+	})
+
+	library:Create("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		Size = UDim2.new(1, -24, 0, 1),
+		BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+		BorderColor3 = Color3.new(),
+		Parent = option.main
+	})
+
+	option.title = library:Create("TextLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+		BorderSizePixel = 0,
+		TextColor3 =  Color3.new(1, 1, 1),
+		TextSize = 15,
+		Font = Enum.Font.Code,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Parent = option.main
+	})
+
+	setmetatable(option, {__newindex = function(t, i, v)
+		if i == "Text" then
+			if v then
+				option.title.Text = tostring(v)
+				option.title.Size = UDim2.new(0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12, 0, 20)
+				option.main.Size = UDim2.new(1, 0, 0, 18)
+			else
+				option.title.Text = ""
+				option.title.Size = UDim2.new()
+				option.main.Size = UDim2.new(1, 0, 0, 6)
+			end
+		end
+	end})
+	option.Text = option.text
+end
 
 library.createToggle = function(option, parent)
 	option.hasInit = true
