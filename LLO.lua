@@ -1,8 +1,8 @@
---Services
-getgenv().runService = game:GetService"RunService"
-getgenv().textService = game:GetService"TextService"
-getgenv().inputService = game:GetService"UserInputService"
-getgenv().tweenService = game:GetService"TweenService"
+getgenv().runService = game:GetService("RunService")
+getgenv().textService = game:GetService("TextService")
+getgenv().inputService = game:GetService("UserInputService")
+getgenv().tweenService = game:GetService("TweenService")
+
 if getgenv().library then
 	getgenv().library:Unload()
 end
@@ -12,7 +12,7 @@ local library = {
     tabs = {},
     draggable = true,
     flags = {},
-    title = "awakenkn-hub",
+    title = "Services", -- Default title
     open = false,
     mousestate = inputService.MouseIconEnabled,
     popup = nil,
@@ -26,46 +26,28 @@ local library = {
     fileext = ".json"
 }
 
-if getgenv().scripttitle then
-    library.title = getgenv().scripttitle
-end
-
--- UI Creation for the title
-library.titleLabel = library:Create("TextLabel", {
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    Position = UDim2.new(0.5, 0, 0.1, 0),
-    BackgroundTransparency = 1,
-    TextColor3 = Color3.fromRGB(255, 255, 255),
-    TextSize = 20,
-    Font = Enum.Font.Code,
-    Text = "", -- Initial empty text for typing effect
-    Parent = library.instances.Main -- Assuming Main is your main UI frame
-})
-
--- Typing Effect Function
-local function typingEffect(label, text, delayTime)
+-- Function for type-and-delete effect
+local function typeAndDeleteEffect(object, text, speed)
+    local len = #text
+    local currentText = ""
     while true do
-        -- Typing effect
-        for i = 1, #text do
-            label.Text = string.sub(text, 1, i)
-            wait(delayTime)
+        -- Type the text
+        for i = 1, len do
+            currentText = string.sub(text, 1, i)
+            object.Text = currentText
+            task.wait(speed)
         end
-        -- Wait before deleting
-        wait(1)
-        -- Deleting effect
-        for i = #text, 1, -1 do
-            label.Text = string.sub(text, 1, i - 1)
-            wait(delayTime)
+        task.wait(0.5) -- Pause at the end of typing
+
+        -- Delete the text
+        for i = len, 0, -1 do
+            currentText = string.sub(text, 1, i)
+            object.Text = currentText
+            task.wait(speed)
         end
-        -- Wait before typing again
-        wait(1)
+        task.wait(0.5) -- Pause before typing again
     end
 end
-
--- Start the typing effect
-coroutine.wrap(function()
-    typingEffect(library.titleLabel, library.title, 0.1) -- Adjust delay as needed
-end)()
 
 if getgenv().FolderName then
     library.foldername = getgenv().FolderName
@@ -220,8 +202,29 @@ function library:GetConfigs()
 end
 
 
+library.createLabel = function(option, parent)
+	option.main = library:Create("TextLabel", {
+		LayoutOrder = option.position,
+		Position = UDim2.new(0, 6, 0, 0),
+		Size = UDim2.new(1, -12, 0, 24),
+		BackgroundTransparency = 1,
+		TextSize = 15,
+		Font = Enum.Font.Code,
+		TextColor3 = Color3.new(1, 1, 1),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		TextWrapped = true,
+		Parent = parent
+	})
 
-
+	setmetatable(option, {__newindex = function(t, i, v)
+		if i == "Text" then
+			option.main.Text = tostring(v)
+			option.main.Size = UDim2.new(1, -12, 0, textService:GetTextSize(option.main.Text, 15, Enum.Font.Code, Vector2.new(option.main.AbsoluteSize.X, 9e9)).Y + 6)
+		end
+	end})
+	option.Text = option.text
+end
 
 library.createDivider = function(option, parent)
 	option.main = library:Create("Frame", {
@@ -240,33 +243,23 @@ library.createDivider = function(option, parent)
 		Parent = option.main
 	})
 
-	option.title = library:Create("TextLabel", {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.5, 0),
-		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-		BorderSizePixel = 0,
-		TextColor3 =  Color3.new(1, 1, 1),
-		TextSize = 15,
-		Font = Enum.Font.Code,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = option.main
-	})
+	function library:createTitle()
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(0, 200, 0, 50)
+    titleLabel.Position = UDim2.new(0.5, -100, 0.1, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextSize = 24
+    titleLabel.Font = Enum.Font.Code
+    titleLabel.TextColor3 = Color3.new(1, 1, 1)
+    titleLabel.Text = ""
+    titleLabel.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("ScreenGui")
 
-	setmetatable(option, {__newindex = function(t, i, v)
-		if i == "Text" then
-			if v then
-				option.title.Text = tostring(v)
-				option.title.Size = UDim2.new(0, textService:GetTextSize(option.title.Text, 15, Enum.Font.Code, Vector2.new(9e9, 9e9)).X + 12, 0, 20)
-				option.main.Size = UDim2.new(1, 0, 0, 18)
-			else
-				option.title.Text = ""
-				option.title.Size = UDim2.new()
-				option.main.Size = UDim2.new(1, 0, 0, 6)
-			end
-		end
-	end})
-	option.Text = option.text
+    -- Start the type-and-delete effect
+    coroutine.wrap(typeAndDeleteEffect)(titleLabel, library.title, 0.05)
+
+    return titleLabel
 end
+
 
 library.createToggle = function(option, parent)
 	option.hasInit = true
