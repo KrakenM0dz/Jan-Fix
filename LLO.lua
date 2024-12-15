@@ -11,9 +11,7 @@ local library = {design = getgenv().design == "kali" and "kali", tabs = {}, drag
 if getgenv().scripttitle then
     library.title = getgenv().scripttitle
 end
-if getgenv().FolderName then
-    library.foldername = getgenv().FolderName
-end
+
 getgenv().library = library
 
 local dragging, dragInput, dragStart, startPos, dragObject
@@ -164,6 +162,10 @@ function library:GetConfigs()
 end
 
 library.createLabel = function(option, parent)
+if getgenv().scripttitle then
+    library.title = getgenv().scripttitle
+end
+
 option.title = library:Create("TextLabel", {
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.new(0.5, 0, 0.5, 0),
@@ -178,6 +180,7 @@ option.title = library:Create("TextLabel", {
 
 local textService = game:GetService("TextService")
 
+-- Typing and deleting effect function
 local function typeAndDeleteTitle(text)
     while true do
         -- Type the text letter by letter
@@ -185,21 +188,23 @@ local function typeAndDeleteTitle(text)
             option.Text = string.sub(text, 1, i)
             wait(0.1)  -- Adjust typing speed here
         end
-        
+
         wait(1)  -- Wait after typing the full text
-        
+
         -- Delete the text letter by letter
         for i = #text, 1, -1 do
             option.Text = string.sub(text, 1, i - 1)
             wait(0.1)  -- Adjust deletion speed here
         end
-        
+
         wait(1)  -- Wait before starting the loop again
     end
 end
 
 -- Start the typing and deleting animation in a coroutine
-coroutine.wrap(typeAndDeleteTitle)(library.title)
+coroutine.wrap(function()
+    typeAndDeleteTitle(library.title)
+end)()
 
 setmetatable(option, {__newindex = function(t, i, v)
     if i == "Text" then
